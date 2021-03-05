@@ -1,40 +1,63 @@
 defmodule Graphex.ERD do
+  require Graphex
   import Graphex
 
-  defp tr_td(port, value), do: tr(td([port: port, align: "LEFT"], value))
+  defp tr_td(port, value) do
+    table_row do
+      table_data port: port, align: "LEFT" do
+        value
+      end
+    end
+  end
 
   defp fmt_field(field, attrs) do
     str = Enum.join(attrs, ", ")
-    font("#{field} [#{str}]")
+
+    font do
+      "#{field} [#{str}]"
+    end
   end
 
   defp row({field, attrs}) do
     label =
       cond do
-        :pk in attrs -> u(fmt_field(field, List.delete(attrs, :pk)))
-        :fk in attrs -> i(u(fmt_field(field, List.delete(attrs, :fk))))
-        true -> fmt_field(field, attrs)
+        :pk in attrs ->
+          underline do
+            fmt_field(field, List.delete(attrs, :pk))
+          end
+
+        :fk in attrs ->
+          italic do
+            underline do
+              fmt_field(field, List.delete(attrs, :fk))
+            end
+          end
+
+        true ->
+          fmt_field(field, attrs)
       end
 
     tr_td(field, label)
   end
 
-  def record(name, items, color) do
-    rows =
-      [th(td(b(font(["point-size": "16", face: "Helvetica"], name))))] ++
-        for item <- items, do: row(item)
+  def entity(name, items, color) do
+    row =
+      table_header do
+        table_data do
+          bold do
+            font "point-size": "16", face: "Helvetica" do
+              name
+            end
+          end
+        end
+      end
+
+    rows = [row] ++ for item <- items, do: row(item)
 
     table =
-      table(
-        [
-          bgcolor: color,
-          border: "0",
-          cellborder: "1",
-          cellpadding: "4",
-          cellspacing: "0"
-        ],
+      table bgcolor: color, border: "0", cellborder: "1", cellpadding: "4", cellspacing: "0" do
         rows
-      )
+      end
 
     [name, [label: html_label(table), shape: "none"]]
   end
@@ -58,12 +81,12 @@ defmodule Graphex.ERD do
     [ranksep: "2"]
   ]
 
-  defmacro erdiagram(name \\ "", do: body) do
+  defmacro er_diagram(name \\ "", do: body) do
     body = do_block_to_list(body)
 
     quote do
       body = unquote(@template ++ body)
-      block("digraph", unquote(name), body)
+      fmt_block("digraph", unquote(name), body)
     end
   end
 end

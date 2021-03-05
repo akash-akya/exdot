@@ -4,8 +4,8 @@ defmodule Graphex.ERDTest do
 
   test "erd" do
     diag =
-      erdiagram do
-        record(
+      er_diagram do
+        entity(
           "Configs",
           [
             {"name", [:varchar, :not_null, :pk]},
@@ -16,7 +16,7 @@ defmodule Graphex.ERDTest do
           "#d0e0d0"
         )
 
-        record(
+        entity(
           "Revisions",
           [
             {"revision_id", [:varchar, :not_null, :pk]},
@@ -28,7 +28,7 @@ defmodule Graphex.ERDTest do
           "#ececfc"
         )
 
-        record(
+        entity(
           "Tags",
           [
             {"id", [:bigint, :not_null, :pk]},

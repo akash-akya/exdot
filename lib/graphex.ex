@@ -12,37 +12,7 @@ defmodule Graphex do
     Enum.join(lines, joiner) |> indent_str(indentation)
   end
 
-  defp fmt_value("<" <> _ = html_label), do: html_label
-  defp fmt_value(v), do: inspect(v)
-
-  defp fmt_kv(k, v), do: "#{k} = #{fmt_value(v)}"
-
-  defp attr_list(attrs) do
-    attrs_str = Enum.map(attrs, fn {k, v} -> fmt_kv(k, v) end) |> indent(" ")
-    " [ #{attrs_str} ] "
-  end
-
-  defp fmt_body(stmt) do
-    case stmt do
-      [{name, attrs}] -> fmt_body([name, attrs])
-      [name, attrs] when is_list(attrs) -> to_string(name) <> attr_list(attrs)
-      [key, value] -> fmt_kv(key, value)
-      [{func, _, args}] when is_atom(func) and is_list(args) -> stmt
-      stmt when is_binary(stmt) -> stmt
-    end
-  end
-
-  def block(type, name, stmts) do
-    body = Enum.map(stmts, &fmt_body/1) |> indent("\n")
-
-    """
-    #{type} #{name} {
-      #{body}
-    }
-    """
-  end
-
-  defp fmt_attrs(attrs) do
+  defp fmt_html_attrs(attrs) do
     for {k, v} <- attrs do
       k = String.upcase(to_string(k))
       "#{k}=#{inspect(v)} "
@@ -51,7 +21,7 @@ defmodule Graphex do
 
   defp fmt_html_node(name, attrs, body) do
     name = String.upcase(to_string(name))
-    indent_str("<#{name} #{fmt_attrs(attrs)}>#{body}</#{name}>", "  ")
+    indent_str("<#{name} #{fmt_html_attrs(attrs)}>#{body}</#{name}>", "  ")
   end
 
   defp fmt_html(node) when is_binary(node), do: node
@@ -65,20 +35,70 @@ defmodule Graphex do
 
   def html_label(body), do: "<#{fmt_html(body)}>"
 
-  for node <- [:table, :tr, :td, :b, :u, :i, :th, :font, :br, :hr] do
-    def unquote(node)(body), do: %{unquote(node) => {[], body}}
-    def unquote(node)(attrs, body), do: %{unquote(node) => {attrs, body}}
+  defp fmt_value("<" <> _ = html_label), do: html_label
+  defp fmt_value(v), do: inspect(v)
+
+  defp fmt_kv(k, v), do: "#{k} = #{fmt_value(v)}"
+
+  defp fmt_attrs(attrs) do
+    attrs_str = Enum.map(attrs, fn {k, v} -> fmt_kv(k, v) end) |> indent(" ")
+    "[ #{attrs_str} ]"
   end
 
-  defmacro digraph(name \\ "", do: body) do
-    quote do: block("digraph", unquote(name), unquote(do_block_to_list(body)))
+  defp fmt_body(stmt) do
+    case stmt do
+      [{name, attrs}] -> fmt_body([name, attrs])
+      [name, attrs] when is_list(attrs) -> to_string(name) <> " " <> fmt_attrs(attrs)
+      [key, value] -> fmt_kv(key, value)
+      [{func, _, args}] when is_atom(func) and is_list(args) -> stmt
+      stmt when is_binary(stmt) -> stmt
+    end
   end
 
-  defmacro subgraph(name \\ "", do: body) do
-    quote do: block("subgraph", unquote(name), unquote(do_block_to_list(body)))
+  def fmt_block(type, name, stmts) do
+    body = Enum.map(stmts, &fmt_body/1) |> indent("\n")
+
+    """
+    #{type} #{name} {
+      #{body}
+    }
+    """
   end
 
-  defmacro graph(name \\ "", do: body) do
-    quote do: block("graph", unquote(name), unquote(do_block_to_list(body)))
+  for {tag_name, tag} <- [
+        {:table, :table},
+        {:table_row, :tr},
+        {:table_data, :td},
+        {:bold, :b},
+        {:underline, :u},
+        {:italic, :i},
+        {:table_header, :th},
+        {:font, :font},
+        {:break, :br},
+        {:horizontal_rule, :hr},
+        {:sub, :sub},
+        {:sup, :sup},
+        {:vertical_rule, :vr},
+        {:img, :img},
+        {:overline, :o},
+        {:strike_through, :s}
+      ] do
+    defmacro unquote(tag_name)(attrs \\ [], do: body) do
+      tag = unquote(tag)
+
+      quote do
+        %{unquote(tag) => {unquote(attrs), do_block_to_list(unquote(body))}}
+      end
+    end
+  end
+
+  for {name} <- [:digraph, :subgraph, :graph] do
+    defmacro unquote(name)(label \\ "", do: body) do
+      name = unquote(name)
+
+      quote do
+        fmt_block(unquote(name), unquote(label), unquote(do_block_to_list(body)))
+      end
+    end
   end
 end
