@@ -1,28 +1,52 @@
-defmodule Graphex.MixProject do
+defmodule Exdot.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :graphex,
+      app: :exdot,
       version: "0.1.0",
-      elixir: "~> 1.8",
+      elixir: "~> 1.7",
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+
+      # Package
+      package: package(),
+      description: description(),
+
+      # Docs
+      source_url: "https://github.com/akash-akya/exdot",
+      homepage_url: "https://github.com/akash-akya/exdot",
+      docs: [
+        main: "readme",
+        extras: ["README.md"]
+      ]
     ]
   end
 
-  # Run "mix help compile.app" to learn about applications.
   def application do
     [
       extra_applications: [:logger]
     ]
   end
 
-  # Run "mix help deps" to learn about dependencies.
+  defp description do
+    "Elixir abstraction for generating Graphviz dot formatted string"
+  end
+
+  defp package do
+    [
+      maintainers: ["Akash Hiremath"],
+      licenses: ["GPL-3.0-or-later"],
+      files: ~w(lib .formatter.exs mix.exs README* LICENSE*),
+      links: %{
+        GitHub: "https://github.com/akash-akya/exdot"
+      }
+    ]
+  end
+
   defp deps do
     [
-      # {:dep_from_hexpm, "~> 0.3.0"},
-      # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
+      {:ex_doc, ">= 0.0.0", only: :dev}
     ]
   end
 end

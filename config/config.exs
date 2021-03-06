@@ -10,11 +10,11 @@ use Mix.Config
 
 # You can configure your application as:
 #
-#     config :graphex, key: :value
+#     config :exdot, key: :value
 #
 # and access this configuration in your application as:
 #
-#     Application.get_env(:graphex, :key)
+#     Application.get_env(:exdot, :key)
 #
 # You can also configure a third-party app:
 #

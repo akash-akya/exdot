@@ -1,6 +1,6 @@
-defmodule Graphex.ERDTest do
+defmodule Exdot.ERDTest do
   use ExUnit.Case
-  import Graphex.ERD
+  import Exdot.ERD
 
   test "erd" do
     diag =
