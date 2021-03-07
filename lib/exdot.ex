@@ -1,4 +1,10 @@
 defmodule Exdot do
+  @type expr ::
+          String.t()
+          | [{name :: atom | String.t(), value :: keyword() | String.t()}]
+          | nonempty_improper_list(name :: atom | String.t(), value :: keyword() | String.t())
+          | (... -> expr)
+
   @moduledoc """
   Elixir abstraction generate Graphviz dot formatted string.
 
@@ -38,8 +44,8 @@ defmodule Exdot do
   end
 
   digraph do
-    ["Company" => [label: "Company"]]
-    ["Employee" => [label: "Employee"]]
+    ["Company", [label: "Company"]]
+    ["Employee", [label: "Employee"]]
 
     Graph.edge("Company", "Employee")
   end
@@ -52,6 +58,7 @@ defmodule Exdot do
 
     See module documentation for more details
     """
+    @spec unquote(name)(String.t(), do_block :: [expr]) :: String.t()
     defmacro unquote(name)(label \\ "", do: body) do
       name = unquote(name)
 
