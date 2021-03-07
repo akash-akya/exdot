@@ -1,4 +1,7 @@
 defmodule Exdot.Html do
+  require Exdot
+  import Exdot
+
   defp fmt_html_attrs(attrs) do
     for {k, v} <- attrs do
       k = String.upcase(to_string(k))
@@ -9,14 +12,14 @@ defmodule Exdot.Html do
 
   defp fmt_html_node(name, attrs, body) do
     name = String.upcase(to_string(name))
-    Exdot.indent_str("<#{name} #{fmt_html_attrs(attrs)}>#{body}</#{name}>", "  ")
+    indent_str("<#{name} #{fmt_html_attrs(attrs)}>#{body}</#{name}>", "  ")
   end
 
   defp fmt_html(node) when is_binary(node), do: node
 
   defp fmt_html(nodes) when is_list(nodes) do
     Enum.map(nodes, &fmt_html/1)
-    |> Exdot.indent("\n")
+    |> indent("\n")
   end
 
   defp fmt_html(node) when is_map(node) do
@@ -48,7 +51,7 @@ defmodule Exdot.Html do
       tag = unquote(tag)
 
       quote do
-        %{unquote(tag) => {unquote(attrs), do_block_to_list(unquote(body))}}
+        %{unquote(tag) => {unquote(attrs), unquote(do_block_to_list(body))}}
       end
     end
   end
